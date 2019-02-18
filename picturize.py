@@ -1,3 +1,5 @@
+#!/usr/bin/env python2.7
+
 # Copyright (C) 2018 Stefan Laufmann
 #
 # This file is part of binmagine.
@@ -14,8 +16,6 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with binmagine.  If not, see <https://www.gnu.org/licenses/>.
-
-#!/usr/bin/env python2.7
 
 import argparse
 import os
