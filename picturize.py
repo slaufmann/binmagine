@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3.7
 
 # Copyright (C) 2018 Stefan Laufmann
 #
@@ -50,13 +50,14 @@ else:
 	samples = lines*width
 
 if lines == 0:
-	print "file contains not enough samples for at least one line of chosen width {}".format(width)
+	print("file contains not enough samples for at least one line of chosen width {}".format(width))
 	exit()
 	
 # start processing	
-print "reading {} samples resulting in an image of {} lines with {} pixels".format(samples, lines, width)
+print("reading {} samples resulting in an image of {} lines with {} pixels".format(samples, lines, width))
 f = open(args.file, "rb")
 line = 0
+lines = int(lines)
 img = Image.new("RGB", (width,lines), "black")
 pix = img.load()	# load the pixels to be able to change their values
 data = f.read(width)	# read first line of data from file
