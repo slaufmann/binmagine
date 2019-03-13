@@ -15,8 +15,8 @@ See [Usage](#usage) for details.
 
 ## Usage
 
-To run this program, python 2.7 is required.
-Running `python2.7 picturize -h` will produce the following output that explains the options of the command line interface:
+To run this program, python 3.7 is required.
+Running `python3.7 picturize -h` will produce the following output that explains the options of the command line interface:
 ```
 usage: picturize.py [-h] [--width WIDTH] [--height HEIGHT] [-s SAMPLES]
                     [-o OUTPUT]
