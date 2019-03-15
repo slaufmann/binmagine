@@ -5,7 +5,7 @@ I know that there are a lot of programs like this out there. But during my maste
 
 ## Functionality
 
-This python script takes a given file and reads it as binary data.
+This python program takes a given file and reads it as binary data.
 Every byte of data that is read from the file is converted into a value between 0 and 255 to represent the grayscale value.
 Byte by byte the given file is read and a grayscale pixel image is produced and later saved to disk.
 
@@ -16,9 +16,9 @@ See [Usage](#usage) for details.
 ## Usage
 
 To run this program, python 3.7 is required.
-Running `python3.7 picturize -h` will produce the following output that explains the options of the command line interface:
+Running `python3.7 binmagine -h` will produce the following output that explains the options of the command line interface:
 ```
-usage: picturize.py [-h] [--width WIDTH] [--height HEIGHT] [-s SAMPLES]
+usage: binmagine.py [-h] [--width WIDTH] [--height HEIGHT] [-s SAMPLES]
                     [-o OUTPUT]
                     file
 
