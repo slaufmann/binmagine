@@ -21,54 +21,124 @@ import argparse
 import os
 from PIL import Image
 
-# define command line options
-parser = argparse.ArgumentParser(
-	formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-parser.add_argument("file", 
-						help="path to the file that should be analysed (file is read as binary data)")
-parser.add_argument("--width", type=int, default=512, 
-						help="width of the resulting image")
-parser.add_argument("--height", type=int, default=0, 
-						help="height of the resulting image (this may lead to not reading all samples)")
-parser.add_argument("-s", "--samples", type=int, default=0, 
-						help="number of samples that should be taken from the file (takes precedence over dimension parameters)")
-parser.add_argument("-o", "--output", default="out.bmp", 
-						help="path to output file (file ending does NOT determine file type)")
-# parse the arguments and react
-args = parser.parse_args()
-# get size of the file
-fSize = os.stat(args.file).st_size
-width = args.width
-if (not args.height):
-	lines = fSize/width
-else:
-	lines = args.height
-if (args.samples):
-	samples = args.samples
-	lines = min(lines,(samples/width))
-else:
-	samples = lines*width
 
-if lines == 0:
-	print("file contains not enough samples for at least one line of chosen width {}".format(width))
-	exit()
-	
-# start processing	
-print("reading {} samples resulting in an image of {} lines with {} pixels".format(samples, lines, width))
-f = open(args.file, "rb")
-line = 0
-lines = int(lines)
-img = Image.new("RGB", (width,lines), "black")
-pix = img.load()	# load the pixels to be able to change their values
-data = f.read(width)	# read first line of data from file
-while (data != "") and (line < lines):
-	binData = bytearray(data)
-	for i in range(width):
-		val = binData[i]
-		pix[i,line] = (val, val, val)
-	line +=1
-	data = f.read(width)
+class Options:
+	"""
+	Options that are read from the command line interface and control the behaviour of the program
+	Attributes:
+			input_file:		path to file that should be analysed
+			output_file:	path to output file
+			height:			height of the resulting image
+			width:			width of the resulting image
+			samples:		number of samples that should be analysed from input file
+	"""
+	def __init__(self, input_file, output_file, height, width, samples):
+		self.input_file = input_file
+		self.output_file = output_file
+		self.height = height
+		self.width = width
+		self.samples = samples
 
-# finished processing, cleaning up	
-f.close()
-img.save(args.output)
+
+# parse command line arguments
+def parse_cli_args():
+	"""
+	parse_cli_args parses command line arguments and returns Options object containing the given or default values.
+
+	NOTE:	In this function no sanity checks are performed on the argument values. See process_options for that.
+	"""
+	# create parser and add arguments
+	parser = argparse.ArgumentParser(
+		formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+	parser.add_argument("file",
+							help="path to the file that should be analysed (file is read as binary data)")
+	parser.add_argument("--width", type=int, default=512,
+							help="width of the resulting image")
+	parser.add_argument("--height", type=int, default=0,
+							help="height of the resulting image (this may lead to not reading all samples)")
+	parser.add_argument("-s", "--samples", type=int, default=0,
+							help="number of samples that should be taken from the file (takes precedence over dimension parameters)")
+	parser.add_argument("-o", "--output", default="out.bmp",
+							help="path to output file (file ending does NOT determine file type)")
+	# parse the arguments and create Options object
+	args = parser.parse_args()
+	options = Options(args.file, args.output, int(args.height), int(args.width), int(args.samples))
+
+	return options
+
+
+# process options and identify conflicts
+def process_options(options):
+	"""
+	process_options checks the values that were parsed from the command line interface
+	to identify conflicts or calculate missing values.
+
+	NOTE:	Since the number of samples to process and the requested dimensions of the resulting image
+			can be conflicting the minimum of both values is chosen.
+	"""
+	# get size of the file
+	file_size = os.stat(options.input_file).st_size
+	# if no height given, calculate from file size and width
+	if not options.height:
+		options.height = int(file_size/options.width)
+	# if number of samples not given, calculate from requested output image dimensions
+	if not options.samples:
+		options.samples = options.height * options.width
+	else:
+		options.height = int(min(options.height, (options.samples/options.width)))
+
+	# exit if not enough data for one line inside the image
+	if options.height == 0:
+		print("Error: File contains not enough samples for at least one line of chosen width, exiting.")
+		exit()
+
+
+# read file data and build result image
+def process_image(input_file, options):
+	"""
+	process_image creates an image with the dimensions given by the options object. It then
+	reads data from the given input file as binary values and build an grayscale image from
+	this data.
+
+	NOTE:	The maximum number of bytes read is specified by the samples attribute of the
+			options object OR if smaller by the image dimensions.
+	"""
+	result_image = Image.new("RGB", (options.width, options.height), "black")
+	pixels = result_image.load()  # load the pixels to be able to change their values
+
+	# read lines from the file and set color of pixels
+	total_bytes_read = 0
+	x = y = 0	# pixel coordinates
+	for line in input_file:
+		bin_data = bytearray(line)
+		for byte in bin_data:
+			pixels[x, y] = byte_to_grayvalue(byte)
+			total_bytes_read += 1
+			x += 1
+			if x == options.width:  # if we reached maximum of x (width of image) increment y
+				x = 0
+				y += 1
+			if total_bytes_read == options.samples:  # return result if we reached specified sample count
+				return result_image
+	return result_image
+
+
+# convert binary data to grayscale color value
+def byte_to_grayvalue(byte):
+	return (byte, byte, byte)
+
+
+# main "function"
+if __name__ == "__main__":
+	options = parse_cli_args()
+	process_options(options)
+
+	print("Reading {} samples resulting in an image of {} lines with {} pixels".format(options.samples,
+																					   options.height,
+																					   options.width))
+	input_file = open(options.input_file, "rb")
+	result_image = process_image(input_file, options)
+
+	input_file.close()
+	result_image.save(options.output_file)
+	print("Finished processing.")
