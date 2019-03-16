@@ -20,6 +20,14 @@
 import argparse
 import os
 from PIL import Image
+from enum import Enum
+
+
+# enum class for supported file types
+class Filetype(Enum):
+	BMP = "bmp"
+	PNG = "png"
+	JPEG = "jpeg"
 
 
 class Options:
@@ -28,6 +36,7 @@ class Options:
 	Attributes:
 			input_file:		path to file that should be analysed
 			output_file:	path to output file
+			filetype:		type of the output file
 			height:			height of the resulting image
 			width:			width of the resulting image
 			samples:		number of samples that should be analysed from input file
@@ -35,9 +44,29 @@ class Options:
 	def __init__(self, input_file, output_file, height, width, samples):
 		self.input_file = input_file
 		self.output_file = output_file
+		self.filetype = self.type_from_filename(output_file)
 		self.height = height
 		self.width = width
 		self.samples = samples
+
+	# derive type of file from file extension
+	@staticmethod
+	def type_from_filename(filename):
+		extensions = {
+			"bmp": Filetype.BMP,
+			"png": Filetype.PNG,
+			"jpg": Filetype.JPEG,
+			"jpeg": Filetype.JPEG
+		}
+		_, file_extension = os.path.splitext(filename)
+		file_extension = file_extension.strip('.')  # remove leading '.'
+		try:
+			filetype = extensions[file_extension]
+		except KeyError:
+			print("Error: Name of output file has no supported file extension, exiting.")
+			exit()
+		else:
+			return filetype
 
 
 # parse command line arguments
@@ -58,7 +87,7 @@ def parse_cli_args():
 							help="height of the resulting image (this may lead to not reading all samples)")
 	parser.add_argument("-s", "--samples", type=int, default=0,
 							help="number of samples that should be taken from the file (takes precedence over dimension parameters)")
-	parser.add_argument("-o", "--output", default="out.bmp",
+	parser.add_argument("-o", "--output", default="out.png",
 							help="path to output file (file ending does NOT determine file type)")
 	# parse the arguments and create Options object
 	args = parser.parse_args()
@@ -108,7 +137,7 @@ def process_image(input_file, options):
 
 	# read lines from the file and set color of pixels
 	total_bytes_read = 0
-	x = y = 0	# pixel coordinates
+	x = y = 0 	# pixel coordinates
 	for line in input_file:
 		bin_data = bytearray(line)
 		for byte in bin_data:
@@ -140,5 +169,5 @@ if __name__ == "__main__":
 	result_image = process_image(input_file, options)
 
 	input_file.close()
-	result_image.save(options.output_file)
+	result_image.save(options.output_file, options.filetype.value)
 	print("Finished processing.")
