@@ -19,6 +19,7 @@
 
 import argparse
 import os
+import sys
 from PIL import Image
 from enum import Enum
 
@@ -63,7 +64,7 @@ class Options:
 		try:
 			filetype = extensions[file_extension]
 		except KeyError:
-			print("Error: Name of output file has no supported file extension, exiting.")
+			print("Error: Name of output file has no supported file extension, exiting.", file=sys.stderr)
 			exit()
 		else:
 			return filetype
@@ -118,7 +119,7 @@ def process_options(options):
 
 	# exit if not enough data for one line inside the image
 	if options.height == 0:
-		print("Error: File contains not enough samples for at least one line of chosen width, exiting.")
+		print("Error: File contains not enough samples for at least one line of chosen width, exiting.", file=sys.stderr)
 		exit()
 
 
@@ -162,12 +163,8 @@ if __name__ == "__main__":
 	options = parse_cli_args()
 	process_options(options)
 
-	print("Reading {} samples resulting in an image of {} lines with {} pixels".format(options.samples,
-																					   options.height,
-																					   options.width))
 	input_file = open(options.input_file, "rb")
 	result_image = process_image(input_file, options)
 
 	input_file.close()
 	result_image.save(options.output_file, options.filetype.value)
-	print("Finished processing.")
