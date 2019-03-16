@@ -36,6 +36,6 @@ optional arguments:
                         (takes precedence over dimension parameters) (default:
                         0)
   -o OUTPUT, --output OUTPUT
-                        path to output file (file ending does NOT determine
-                        file type) (default: out.bmp)
+                        path to output file (file ending determines file type,
+                        supported: bmp, jpg, png) (default: out.png)
 ```

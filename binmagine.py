@@ -88,7 +88,7 @@ def parse_cli_args():
 	parser.add_argument("-s", "--samples", type=int, default=0,
 							help="number of samples that should be taken from the file (takes precedence over dimension parameters)")
 	parser.add_argument("-o", "--output", default="out.png",
-							help="path to output file (file ending does NOT determine file type)")
+							help="path to output file (file ending determines file type, supported: bmp, jpg, png)")
 	# parse the arguments and create Options object
 	args = parser.parse_args()
 	options = Options(args.file, args.output, int(args.height), int(args.width), int(args.samples))
